@@ -1,10 +1,7 @@
 {
-	"name": "@ambiently/agent",
+	"name": "@ambiently/agent-sdk",
 	"module": "src/index.ts",
 	"type": "module",
-	"bin": {
-		"ambient": "src/cli/bin.ts"
-	},
 	"devDependencies": {
 		"@types/bun": "latest"
 	},
@@ -15,8 +12,7 @@
 		"check": "biome check",
 		"check:fix": "biome check --write",
 		"build:preamble": "bun scripts/build-preamble.ts",
-		"test": "bun test --max-concurrency 1",
-		"cli": "bun src/cli/bin.ts"
+		"test": "bun test --max-concurrency 1"
 	},
 	"dependencies": {
 		"@anthropic-ai/claude-agent-sdk": "^0.2.114",

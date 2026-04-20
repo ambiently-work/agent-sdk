@@ -1,19 +1,19 @@
 # Providers
 
-How the five `Provider` implementations plug into the agent harness and how events flow from each backend back to the CLI.
+How the five `Provider` implementations plug into the agent harness and how events flow from each backend back to the embedder.
 
 ```mermaid
 flowchart TB
     subgraph Host["Ambient Host (Bun process)"]
-        CLI["CLI: src/cli/bin.ts<br/>parseArgs → runCli → EventRenderer"]
+        Embedder["Embedder<br/>new Agent(provider, tools).run(...)"]
         Agent["Agent<br/>pairs Provider + ToolRegistry"]
         Registry["ToolRegistry<br/>zod-validated Tool[]"]
         Sandbox["Sandbox (workerd)<br/>DynamicTool isolation"]
         Registry -.runs.-> Sandbox
     end
 
-    CLI -->|RunInput<br/>messages, model, signal| Agent
-    Agent -->|delegate| P{Provider<br/>by --provider flag}
+    Embedder -->|RunInput<br/>messages, model, signal| Agent
+    Agent -->|delegate| P{Provider}
 
     P -->|id=ollama| Ollama
     P -->|id=lmstudio| LMStudio
@@ -65,15 +65,14 @@ flowchart TB
     Gemini -.-> Loop
 
     Ollama & LMStudio & Gemini & Claude & Codex ==>|"AsyncIterable&lt;ProviderEvent&gt;<br/>assistant_text_delta · assistant_text<br/>tool_call · tool_result · done · error"| Agent
-    Agent ==> CLI
-    CLI -->|ANSI-painted stream| User(["stdout / TTY"])
+    Agent ==> Embedder
 
     classDef ext fill:#1e293b,stroke:#64748b,color:#e2e8f0;
     classDef core fill:#0f172a,stroke:#38bdf8,color:#e2e8f0;
     classDef chat fill:#064e3b,stroke:#34d399,color:#d1fae5;
     classDef meta fill:#4c1d95,stroke:#a78bfa,color:#ede9fe;
     class OllamaSrv,LMSrv,GemSrv,ClaudeCLI,CodexCLI ext;
-    class CLI,Agent,Registry,Sandbox,MCP core;
+    class Embedder,Agent,Registry,Sandbox,MCP core;
     class Ollama,LMStudio,Gemini chat;
     class Claude,Codex meta;
 ```
@@ -84,4 +83,4 @@ flowchart TB
 
 **Meta-agent providers** (Claude Agent SDK, Codex SDK) — the SDK owns the loop and runs built-in tools (Bash/Read/Edit for Claude; `command_execution` / `mcp_tool_call` for Codex) inside its own subprocess. The provider hooks our `ToolRegistry` in via MCP (Claude, through `createSdkMcpServer`) or just surfaces the SDK's tool items as `tool_call` / `tool_result` events (Codex).
 
-Both shapes funnel into the same normalized `AsyncIterable<ProviderEvent>` that the CLI's `EventRenderer` paints to the TTY.
+Both shapes funnel into the same normalized `AsyncIterable<ProviderEvent>` that the embedder consumes — render it to a TTY, surface it over SSE, pipe it to a logger, whatever fits.
