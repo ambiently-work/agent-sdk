@@ -1,8 +1,4 @@
-import type {
-	Shell,
-	ShellOptions,
-	ShellResult,
-} from "@ambiently-work/faux";
+import type { Shell, ShellOptions, ShellResult } from "@ambiently-work/faux";
 import { z } from "zod";
 import { ShellSession } from "./shell-session";
 import { Tool, type ToolResult } from "./tools";
