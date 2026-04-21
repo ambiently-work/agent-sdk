@@ -1,7 +1,7 @@
+import { Tool, type ToolResult } from "@ambiently-work/faux";
 import { z } from "zod";
 import { Sandbox, type SandboxCreateOptions } from "../sandbox";
 import type { ToolMeta } from "../sandbox/types";
-import { Tool, type ToolResult } from "./tools";
 
 export type DynamicToolOptions = SandboxCreateOptions;
 

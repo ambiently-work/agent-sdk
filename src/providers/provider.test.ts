@@ -3,7 +3,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { z } from "zod";
 import { Agent } from "../agent/agent";
-import { Tool, ToolRegistry, type ToolResult } from "../tools/tools";
+import { Tool, ToolRegistry, type ToolResult } from "@ambiently-work/faux";
 import { type OllamaClientLike, OllamaProvider } from "./ollama";
 import {
 	type ModelInfo,

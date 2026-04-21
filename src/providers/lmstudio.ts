@@ -6,7 +6,7 @@ import {
 	rawFunctionTool,
 } from "@lmstudio/sdk";
 import { z } from "zod";
-import type { ToolRegistry } from "../tools/tools";
+import type { ToolRegistry } from "@ambiently-work/faux";
 import {
 	type Message,
 	type ModelInfo,

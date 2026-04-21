@@ -1,5 +1,5 @@
+import { ToolRegistry } from "@ambiently-work/faux";
 import type { Provider, ProviderEvent, RunInput } from "../providers/provider";
-import { ToolRegistry } from "../tools/tools";
 
 export class Agent {
 	constructor(
