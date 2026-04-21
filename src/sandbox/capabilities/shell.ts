@@ -1,8 +1,4 @@
-import type {
-	Shell,
-	ShellOptions,
-	ShellResult,
-} from "@ambiently-work/faux";
+import type { Shell, ShellOptions, ShellResult } from "@ambiently-work/faux";
 import { ShellSession } from "../../tools/shell-session";
 import type { Capability } from "../types";
 

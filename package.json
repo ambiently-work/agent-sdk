@@ -16,7 +16,8 @@
 		"test": "bun test --max-concurrency 1"
 	},
 	"dependencies": {
-		"@ambiently-work/faux": "^0.0.1",
+		"@ambiently-work/faux": "file:../faux",
+		"@ambiently-work/vfs": "file:../../ambiently-work/mirage",
 		"@anthropic-ai/claude-agent-sdk": "^0.2.114",
 		"@google/genai": "^1.50.1",
 		"@lmstudio/sdk": "^1.5.0",

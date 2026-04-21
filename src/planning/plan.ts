@@ -136,30 +136,31 @@ export const GroupNode: z.ZodType<GroupNodeT> = z.lazy(() =>
 	}),
 );
 
-export type GroupNodeT = z.infer<typeof ResearchNode> extends infer _
-	? {
-			id: string;
-			title: string;
-			description: string;
-			status: NodeStatus;
-			output?: unknown;
-			error?: NodeError;
-			dependsOn: string[];
-			gatedOn?: GatedOn;
-			needsExpansion: boolean;
-			severity: SeverityGrade;
-			estimatedTokens?: number;
-			allowedTools?: string[];
-			retryPolicy?: RetryPolicy;
-			attempts: number;
-			annotations: string[];
-			startedAt?: string;
-			completedAt?: string;
-			type: "group";
-			mode: "sequence" | "parallel";
-			children: PlanNode[];
-		}
-	: never;
+export type GroupNodeT =
+	z.infer<typeof ResearchNode> extends infer _
+		? {
+				id: string;
+				title: string;
+				description: string;
+				status: NodeStatus;
+				output?: unknown;
+				error?: NodeError;
+				dependsOn: string[];
+				gatedOn?: GatedOn;
+				needsExpansion: boolean;
+				severity: SeverityGrade;
+				estimatedTokens?: number;
+				allowedTools?: string[];
+				retryPolicy?: RetryPolicy;
+				attempts: number;
+				annotations: string[];
+				startedAt?: string;
+				completedAt?: string;
+				type: "group";
+				mode: "sequence" | "parallel";
+				children: PlanNode[];
+			}
+		: never;
 
 export const PlanNode: z.ZodType<PlanNode> = z.lazy(() =>
 	z.discriminatedUnion("type", [

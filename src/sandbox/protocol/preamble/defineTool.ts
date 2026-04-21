@@ -69,6 +69,8 @@ export const defineToolSource = `
           ? "fetch"
           : name === "ShellDeniedError"
           ? "shell"
+          : name === "FsDeniedError"
+          ? "fs"
           : null;
       const code = deniedCapability
         ? "sandbox_capability_denied"
