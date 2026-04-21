@@ -57,6 +57,9 @@ export {
 	type SandboxCreateOptions,
 	type SandboxInstance,
 	type SandboxOptions,
+	type ShellCapabilityOptions,
+	ShellDeniedError,
+	shellCapability,
 	type ToolMeta,
 } from "./sandbox";
 export {
@@ -66,6 +69,8 @@ export {
 } from "./sandbox/authoring";
 export { transpileTs } from "./sandbox/transpile";
 export { DynamicTool, type DynamicToolOptions } from "./tools/dynamic-tool";
+export { ShellSession } from "./tools/shell-session";
+export { ShellTool, type ShellToolOptions } from "./tools/shell-tool";
 export {
 	type Result,
 	Tool,

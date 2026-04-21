@@ -7,3 +7,8 @@ export {
 	type GuestFetchResponse,
 } from "./fetch";
 export { type LogCapabilityOptions, type LogSink, logCapability } from "./log";
+export {
+	type ShellCapabilityOptions,
+	ShellDeniedError,
+	shellCapability,
+} from "./shell";

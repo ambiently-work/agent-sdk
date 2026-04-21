@@ -27,6 +27,9 @@ export {
 	type LogCapabilityOptions,
 	type LogSink,
 	logCapability,
+	type ShellCapabilityOptions,
+	ShellDeniedError,
+	shellCapability,
 } from "./capabilities";
 export { Sandbox, type SandboxCreateOptions } from "./sandbox";
 export {
