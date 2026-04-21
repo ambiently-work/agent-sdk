@@ -1,5 +1,6 @@
 {
-	"name": "@ambiently/agent-sdk",
+	"name": "@ambiently-work/agent-sdk",
+	"version": "0.0.1",
 	"module": "src/index.ts",
 	"type": "module",
 	"devDependencies": {
@@ -15,7 +16,7 @@
 		"test": "bun test --max-concurrency 1"
 	},
 	"dependencies": {
-		"@ambiently-work/faux-shell": "npm:@ambiently/faux-shell@^0.0.1",
+		"@ambiently-work/faux": "^0.0.1",
 		"@anthropic-ai/claude-agent-sdk": "^0.2.114",
 		"@google/genai": "^1.50.1",
 		"@lmstudio/sdk": "^1.5.0",

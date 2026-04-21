@@ -1,4 +1,4 @@
-# @ambiently/agent
+# @ambiently-work/agent-sdk
 
 To install dependencies:
 
