@@ -1,0 +1,105 @@
+name: Bump faux-shell
+
+on:
+  repository_dispatch:
+    types: [faux-shell-released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version of @ambiently-work/faux-shell to bump to (e.g. 0.1.2)"
+        required: true
+        type: string
+
+concurrency:
+  group: bump-faux-shell
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Bump @ambiently-work/faux-shell
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE: "@ambiently-work/faux-shell"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve target version
+        id: target
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${DISPATCH_VERSION:-$INPUT_VERSION}"
+          if [ -z "$VERSION" ]; then
+            echo "No version supplied via dispatch payload or workflow input" >&2
+            exit 1
+          fi
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "branch=chore/bump-faux-shell-$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Read current version
+        id: current
+        run: |
+          set -euo pipefail
+          CURRENT=$(bun --print "JSON.parse(await Bun.file('package.json').text()).dependencies?.['$PACKAGE'] ?? ''")
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+
+      - name: Update dependency
+        env:
+          VERSION: ${{ steps.target.outputs.version }}
+        run: |
+          set -euo pipefail
+          bun add "$PACKAGE@$VERSION"
+
+      - name: Detect changes
+        id: diff
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- package.json bun.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install (for tests)
+        if: steps.diff.outputs.changed == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        if: steps.diff.outputs.changed == 'true'
+        run: bun run check
+
+      - name: Test
+        if: steps.diff.outputs.changed == 'true'
+        run: bun test
+
+      - name: Create pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ${{ steps.target.outputs.branch }}
+          base: main
+          commit-message: "chore(deps): bump @ambiently-work/faux-shell to ${{ steps.target.outputs.version }}"
+          title: "chore(deps): bump @ambiently-work/faux-shell to ${{ steps.target.outputs.version }}"
+          body: |
+            Automated bump in response to a new `@ambiently-work/faux-shell` release.
+
+            - Previous range: `${{ steps.current.outputs.current }}`
+            - New version: `${{ steps.target.outputs.version }}`
+            - Triggered by: `${{ github.event_name }}`
+
+            CI has already run `bun run check` and `bun test` on this branch.
+          labels: |
+            dependencies
+            automated
+          delete-branch: true

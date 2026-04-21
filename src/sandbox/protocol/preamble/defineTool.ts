@@ -64,16 +64,20 @@ export const defineToolSource = `
       const name = e && e.name ? String(e.name) : "Error";
       const message = e && e.message ? String(e.message) : String(e);
       const stack = e && e.stack ? String(e.stack) : undefined;
-      const code =
+      const deniedCapability =
         name === "FetchDeniedError"
-          ? "sandbox_capability_denied"
-          : name === "FetchOversizeError"
-          ? "tool_failed"
-          : "sandbox_runtime_error";
-      const error =
-        code === "sandbox_capability_denied"
-          ? { code, message, capability: "fetch" }
-          : { code, message, stack };
+          ? "fetch"
+          : name === "ShellDeniedError"
+          ? "shell"
+          : null;
+      const code = deniedCapability
+        ? "sandbox_capability_denied"
+        : name === "FetchOversizeError"
+        ? "tool_failed"
+        : "sandbox_runtime_error";
+      const error = deniedCapability
+        ? { code, message, capability: deniedCapability }
+        : { code, message, stack };
       return JSON.stringify({ ok: false, error });
     }
   };
