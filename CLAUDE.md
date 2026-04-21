@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`@ambiently/agent` — a library for running an LLM agent loop with tools that can be authored as TypeScript and executed inside a workerd sandbox. Target runtime is Bun; the sandbox guest runs under workerd (via `miniflare` locally, or Cloudflare's Worker Loader binding in a Worker).
+`@ambiently-work/agent-sdk` — a library for running an LLM agent loop with tools that can be authored as TypeScript and executed inside a workerd sandbox. Target runtime is Bun; the sandbox guest runs under workerd (via `miniflare` locally, or Cloudflare's Worker Loader binding in a Worker).
 
 ## Commands
 

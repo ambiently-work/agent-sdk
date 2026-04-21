@@ -2,7 +2,7 @@ import {
 	Shell,
 	type ShellOptions,
 	type ShellResult,
-} from "@ambiently-work/faux-shell";
+} from "@ambiently-work/faux";
 
 export class ShellSession {
 	readonly shell: Shell;

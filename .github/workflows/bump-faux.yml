@@ -1,17 +1,17 @@
-name: Bump faux-shell
+name: Bump faux
 
 on:
   repository_dispatch:
-    types: [faux-shell-released]
+    types: [faux-released]
   workflow_dispatch:
     inputs:
       version:
-        description: "Version of @ambiently-work/faux-shell to bump to (e.g. 0.1.2)"
+        description: "Version of @ambiently-work/faux to bump to (e.g. 0.1.2)"
         required: true
         type: string
 
 concurrency:
-  group: bump-faux-shell
+  group: bump-faux
   cancel-in-progress: false
 
 permissions:
@@ -20,10 +20,10 @@ permissions:
 
 jobs:
   bump:
-    name: Bump @ambiently-work/faux-shell
+    name: Bump @ambiently-work/faux
     runs-on: ubuntu-latest
     env:
-      PACKAGE: "@ambiently-work/faux-shell"
+      PACKAGE: "@ambiently-work/faux"
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +41,7 @@ jobs:
           fi
           VERSION="${VERSION#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "branch=chore/bump-faux-shell-$VERSION" >> "$GITHUB_OUTPUT"
+          echo "branch=chore/bump-faux-$VERSION" >> "$GITHUB_OUTPUT"
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -89,10 +89,10 @@ jobs:
         with:
           branch: ${{ steps.target.outputs.branch }}
           base: main
-          commit-message: "chore(deps): bump @ambiently-work/faux-shell to ${{ steps.target.outputs.version }}"
-          title: "chore(deps): bump @ambiently-work/faux-shell to ${{ steps.target.outputs.version }}"
+          commit-message: "chore(deps): bump @ambiently-work/faux to ${{ steps.target.outputs.version }}"
+          title: "chore(deps): bump @ambiently-work/faux to ${{ steps.target.outputs.version }}"
           body: |
-            Automated bump in response to a new `@ambiently-work/faux-shell` release.
+            Automated bump in response to a new `@ambiently-work/faux` release.
 
             - Previous range: `${{ steps.current.outputs.current }}`
             - New version: `${{ steps.target.outputs.version }}`
