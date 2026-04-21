@@ -1,15 +1,4 @@
 export { Agent } from "./agent/agent";
-export {
-	type CliArgs,
-	type CliDeps,
-	EventRenderer,
-	HELP_TEXT,
-	PROVIDER_IDS,
-	type ProviderId,
-	parseArgs,
-	type RenderOptions,
-	runCli,
-} from "./cli";
 export * as planning from "./planning";
 export {
 	ClaudeAgentProvider,
