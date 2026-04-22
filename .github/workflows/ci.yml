@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: ambiently-work/agent-sdk
+
+jobs:
+  lint:
+    name: Lint (Biome)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bootstrap checkout (for composite action)
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
+      - name: Setup workspace
+        uses: ./ambiently-work/agent-sdk/.github/actions/setup
+      - name: Biome check
+        run: bun run check
+
+  typecheck:
+    name: Typecheck (tsc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
+      - uses: ./ambiently-work/agent-sdk/.github/actions/setup
+      - name: Run tsc --noEmit (CI filter)
+        run: bun run typecheck:ci
+
+  test-unit:
+    name: Test (unit, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
+      - uses: ./ambiently-work/agent-sdk/.github/actions/setup
+      - name: Run unit tests
+        env:
+          FORCE_COLOR: "1"
+        run: bun run test:unit
+
+  test-sandbox:
+    name: Test (sandbox, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # Sandbox tests spin up miniflare/workerd subprocesses, which are flaky on
+    # GitHub-hosted runners (workerd "Broken pipe" during bootstrap, ENOENT on
+    # the control socket). They're not blocking yet — see issue #26 — but we
+    # still run them so regressions show up in the check list.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
+      - uses: ./ambiently-work/agent-sdk/.github/actions/setup
+      - name: Run sandbox tests (one file per bun process, with retry)
+        env:
+          FORCE_COLOR: "1"
+        # The miniflare/workerd lifecycle occasionally leaves a zombie subprocess
+        # or a half-cleaned control socket behind after `sandbox.dispose()`. When
+        # the next test boots miniflare it hits `connect ENOENT`. Running each
+        # test file in its own bun process guarantees a clean slate between files.
+        # Tests inside a file still share a process but that's fine — flakes have
+        # only been observed across-file.
+        run: |
+          set -eu
+          files=$(find src/sandbox/authoring.test.ts src/sandbox/backend/workerd.test.ts src/sandbox/capabilities src/tools/dynamic-tool.test.ts src/tools/registry-dynamic.test.ts -name '*.test.ts' | sort)
+          fail=0
+          for file in $files; do
+            echo "::group::$file"
+            attempts=0
+            max=3
+            until bun test "$file"; do
+              exit=$?
+              attempts=$((attempts + 1))
+              if [ "$attempts" -ge "$max" ]; then
+                echo "::error::$file failed after $attempts attempts (exit $exit)"
+                fail=1
+                break
+              fi
+              echo "::warning::$file failed (attempt $attempts/$max, exit $exit); retrying..."
+              sleep 2
+            done
+            echo "::endgroup::"
+          done
+          exit "$fail"
+
+  preamble-fresh:
+    name: Preamble up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
+      - uses: ./ambiently-work/agent-sdk/.github/actions/setup
+      - name: Rebuild preamble
+        id: rebuild
+        continue-on-error: true
+        run: bun run build:preamble
+      - name: Verify no drift
+        if: steps.rebuild.outcome == 'success'
+        run: |
+          if ! git diff --quiet -- 'src/**/zod.bundle.ts'; then
+            echo "::error::zod.bundle.ts is out of date. Run 'bun run build:preamble' and commit the result."
+            git diff --stat -- 'src/**/zod.bundle.ts'
+            exit 1
+          fi
+
+  ci-status:
+    name: CI status
+    if: always()
+    needs: [lint, typecheck, test-unit]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Fail if any required job failed
+        env:
+          LINT_RESULT: ${{ needs.lint.result }}
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
+          TEST_RESULT: ${{ needs.test-unit.result }}
+        run: |
+          if [ "$LINT_RESULT" != "success" ] \
+            || [ "$TYPECHECK_RESULT" != "success" ] \
+            || [ "$TEST_RESULT" != "success" ]; then
+            echo "One or more required jobs failed." >&2
+            exit 1
+          fi

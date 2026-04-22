@@ -1,3 +1,4 @@
+import type { ToolRegistry, ToolResult } from "@ambiently-work/faux";
 import {
 	type Content,
 	type FunctionCall,
@@ -7,7 +8,6 @@ import {
 	GoogleGenAI,
 } from "@google/genai";
 import { z } from "zod";
-import type { ToolRegistry, ToolResult } from "@ambiently-work/faux";
 import {
 	type Message,
 	type ModelInfo,

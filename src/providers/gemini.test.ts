@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { z } from "zod";
 import { Tool, ToolRegistry, type ToolResult } from "@ambiently-work/faux";
+import { z } from "zod";
 import { GeminiProvider } from "./gemini";
 import type { ProviderEvent } from "./provider";
 
@@ -34,18 +34,19 @@ function fakeGemini(
 			async generateContentStream() {
 				const script = scripts[i++];
 				if (!script) throw new Error("no more scripts");
+				const current = script;
 				async function* gen() {
-					if (script.text) {
+					if (current.text) {
 						yield {
-							text: script.text,
+							text: current.text,
 							functionCalls: undefined,
 							candidates: [{ finishReason: "STOP" }],
 						};
 					}
-					if (script.calls?.length) {
+					if (current.calls?.length) {
 						yield {
 							text: undefined,
-							functionCalls: script.calls.map((c) => ({
+							functionCalls: current.calls.map((c) => ({
 								id: crypto.randomUUID(),
 								name: c.name,
 								args: c.args,

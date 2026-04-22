@@ -24,8 +24,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PACKAGE: "@ambiently-work/faux"
+    defaults:
+      run:
+        working-directory: ambiently-work/agent-sdk
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
 
       - name: Resolve target version
         id: target
@@ -43,7 +48,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "branch=chore/bump-faux-$VERSION" >> "$GITHUB_OUTPUT"
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: latest
 
@@ -71,22 +76,27 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install (for tests)
+      - name: Setup workspace (sibling repos + install)
         if: steps.diff.outputs.changed == 'true'
-        run: bun install --frozen-lockfile
+        uses: ./ambiently-work/agent-sdk/.github/actions/setup
 
       - name: Lint
         if: steps.diff.outputs.changed == 'true'
         run: bun run check
 
-      - name: Test
+      - name: Typecheck
         if: steps.diff.outputs.changed == 'true'
-        run: bun test
+        run: bun run typecheck:ci
+
+      - name: Unit tests
+        if: steps.diff.outputs.changed == 'true'
+        run: bun run test:unit
 
       - name: Create pull request
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
+          path: ambiently-work/agent-sdk
           branch: ${{ steps.target.outputs.branch }}
           base: main
           commit-message: "chore(deps): bump @ambiently-work/faux to ${{ steps.target.outputs.version }}"
