@@ -1,3 +1,4 @@
+import type { ToolRegistry, ToolResult } from "@ambiently-work/faux";
 import type {
 	ChatRequest as OllamaChatRequest,
 	Tool as OllamaChatTool,
@@ -5,7 +6,6 @@ import type {
 	ToolCall as OllamaToolCall,
 } from "ollama";
 import { Ollama } from "ollama";
-import type { ToolRegistry, ToolResult } from "@ambiently-work/faux";
 import {
 	type Message,
 	type ModelInfo,

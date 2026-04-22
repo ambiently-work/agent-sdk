@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { z } from "zod";
 import { Tool, ToolRegistry, type ToolResult } from "@ambiently-work/faux";
+import { z } from "zod";
 import { GeminiProvider } from "./gemini";
 import type { ProviderEvent } from "./provider";
 

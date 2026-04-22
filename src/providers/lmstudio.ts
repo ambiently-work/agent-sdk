@@ -1,3 +1,4 @@
+import type { ToolRegistry } from "@ambiently-work/faux";
 import {
 	type ChatMessageInput,
 	type LLM,
@@ -6,7 +7,6 @@ import {
 	rawFunctionTool,
 } from "@lmstudio/sdk";
 import { z } from "zod";
-import type { ToolRegistry } from "@ambiently-work/faux";
 import {
 	type Message,
 	type ModelInfo,

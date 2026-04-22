@@ -1,10 +1,10 @@
+import type { Result, ToolRegistry } from "@ambiently-work/faux";
 import { Server as McpServerImpl } from "@modelcontextprotocol/sdk/server/index.js";
 import {
 	CallToolRequestSchema,
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import type { Result, ToolRegistry } from "@ambiently-work/faux";
 
 export interface ModelInfo {
 	id: string;
