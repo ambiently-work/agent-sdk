@@ -77,22 +77,37 @@ jobs:
         with:
           path: ambiently-work/agent-sdk
       - uses: ./ambiently-work/agent-sdk/.github/actions/setup
-      - name: Run sandbox tests (with retry)
+      - name: Run sandbox tests (one file per bun process, with retry)
         env:
           FORCE_COLOR: "1"
+        # The miniflare/workerd lifecycle occasionally leaves a zombie subprocess
+        # or a half-cleaned control socket behind after `sandbox.dispose()`. When
+        # the next test boots miniflare it hits `connect ENOENT`. Running each
+        # test file in its own bun process guarantees a clean slate between files.
+        # Tests inside a file still share a process but that's fine — flakes have
+        # only been observed across-file.
         run: |
-          attempts=0
-          max=3
-          until bun run test:sandbox; do
-            exit=$?
-            attempts=$((attempts + 1))
-            if [ "$attempts" -ge "$max" ]; then
-              echo "::error::bun run test:sandbox failed after $attempts attempts (exit $exit)"
-              exit "$exit"
-            fi
-            echo "::warning::bun run test:sandbox failed (attempt $attempts/$max, exit $exit); retrying..."
-            sleep 2
+          set -eu
+          files=$(find src/sandbox/authoring.test.ts src/sandbox/backend/workerd.test.ts src/sandbox/capabilities src/tools/dynamic-tool.test.ts src/tools/registry-dynamic.test.ts -name '*.test.ts' | sort)
+          fail=0
+          for file in $files; do
+            echo "::group::$file"
+            attempts=0
+            max=3
+            until bun test "$file"; do
+              exit=$?
+              attempts=$((attempts + 1))
+              if [ "$attempts" -ge "$max" ]; then
+                echo "::error::$file failed after $attempts attempts (exit $exit)"
+                fail=1
+                break
+              fi
+              echo "::warning::$file failed (attempt $attempts/$max, exit $exit); retrying..."
+              sleep 2
+            done
+            echo "::endgroup::"
           done
+          exit "$fail"
 
   preamble-fresh:
     name: Preamble up to date
