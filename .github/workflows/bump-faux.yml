@@ -24,8 +24,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PACKAGE: "@ambiently-work/faux"
+    defaults:
+      run:
+        working-directory: ambiently-work/agent-sdk
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
 
       - name: Resolve target version
         id: target
@@ -71,13 +76,17 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install (for tests)
+      - name: Setup workspace (sibling repos + install)
         if: steps.diff.outputs.changed == 'true'
-        run: bun install --frozen-lockfile
+        uses: ./ambiently-work/agent-sdk/.github/actions/setup
 
       - name: Lint
         if: steps.diff.outputs.changed == 'true'
         run: bun run check
+
+      - name: Typecheck
+        if: steps.diff.outputs.changed == 'true'
+        run: bun run typecheck:ci
 
       - name: Test
         if: steps.diff.outputs.changed == 'true'
@@ -87,6 +96,7 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
+          path: ambiently-work/agent-sdk
           branch: ${{ steps.target.outputs.branch }}
           base: main
           commit-message: "chore(deps): bump @ambiently-work/faux to ${{ steps.target.outputs.version }}"
