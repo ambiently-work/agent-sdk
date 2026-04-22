@@ -56,9 +56,26 @@ jobs:
           path: ambiently-work/agent-sdk
       - uses: ./ambiently-work/agent-sdk/.github/actions/setup
       - name: Run tests
-        run: bun test
         env:
           FORCE_COLOR: "1"
+        # The sandbox tests spin up real miniflare/workerd instances, which
+        # occasionally fail to start under CI resource pressure (broken pipe
+        # from workerd during bootstrap, ENOENT on the control socket). We
+        # retry up to 3 times so flakiness doesn't block merges; if every
+        # attempt fails, the job still fails.
+        run: |
+          attempts=0
+          max=3
+          until bun test; do
+            exit=$?
+            attempts=$((attempts + 1))
+            if [ "$attempts" -ge "$max" ]; then
+              echo "::error::bun test failed after $attempts attempts (exit $exit)"
+              exit "$exit"
+            fi
+            echo "::warning::bun test failed (attempt $attempts/$max, exit $exit); retrying..."
+            sleep 2
+          done
 
   preamble-fresh:
     name: Preamble up to date
