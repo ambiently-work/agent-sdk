@@ -73,14 +73,41 @@ export {
 	compileTool,
 } from "./sandbox/authoring";
 export { transpileTs } from "./sandbox/transpile";
-export { DynamicTool, type DynamicToolOptions } from "./tools/dynamic-tool";
-export { ShellSession } from "./tools/shell-session";
-export { ShellTool, type ShellToolOptions } from "./tools/shell-tool";
 export {
+	createDefaultTools,
+	type DefaultToolsOptions,
+	EditTool,
+	type EditToolOptions,
+	type EditToolResult,
+	GlobTool,
+	type GlobToolOptions,
+	type GlobToolResult,
+	type GrepMatch,
+	GrepTool,
+	type GrepToolOptions,
+	type GrepToolResult,
+	type LsEntry,
+	LsTool,
+	type LsToolOptions,
+	type LsToolResult,
+	type LspDiagnostic,
+	LspTool,
+	type LspToolOptions,
+	type LspToolResult,
+	ReadTool,
+	type ReadToolOptions,
+	type ReadToolResult,
 	type Result,
+	ShellSession,
+	ShellTool,
+	type ShellToolOptions,
 	Tool,
 	type ToolCall,
 	type ToolError,
 	ToolRegistry,
 	type ToolResult,
-} from "./tools/tools";
+	WriteTool,
+	type WriteToolOptions,
+	type WriteToolResult,
+} from "@ambiently-work/faux";
+export { DynamicTool, type DynamicToolOptions } from "./tools/dynamic-tool";

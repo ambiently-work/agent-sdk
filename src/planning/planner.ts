@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Agent } from "../agent/agent";
 import type { Provider } from "../providers/provider";
-import { Tool, ToolRegistry, type ToolResult } from "../tools/tools";
+import { Tool, ToolRegistry, type ToolResult } from "@ambiently-work/faux";
 import {
 	type ModelBinding,
 	type ModelRouter,

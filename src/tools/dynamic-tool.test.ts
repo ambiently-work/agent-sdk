@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { ToolRegistry } from "@ambiently-work/faux";
 import { fetchCapability } from "../sandbox/capabilities";
 import { DynamicTool } from "./dynamic-tool";
-import { ToolRegistry } from "./tools";
 
 const echoSource = `
 defineTool({

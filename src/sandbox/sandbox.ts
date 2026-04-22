@@ -1,4 +1,4 @@
-import type { ToolResult } from "../tools/tools";
+import type { ToolResult } from "@ambiently-work/faux";
 import { type BackendSelectionOptions, selectBackend } from "./backend/select";
 import { loadResponseSchema } from "./protocol/wire";
 import type {

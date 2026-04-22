@@ -1,4 +1,4 @@
-import type { ToolResult } from "../tools/tools";
+import type { ToolResult } from "@ambiently-work/faux";
 
 export interface ToolMeta {
 	id: string;

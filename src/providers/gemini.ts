@@ -7,7 +7,7 @@ import {
 	GoogleGenAI,
 } from "@google/genai";
 import { z } from "zod";
-import type { ToolRegistry, ToolResult } from "../tools/tools";
+import type { ToolRegistry, ToolResult } from "@ambiently-work/faux";
 import {
 	type Message,
 	type ModelInfo,
