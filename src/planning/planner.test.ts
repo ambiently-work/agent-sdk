@@ -331,7 +331,7 @@ describe("Planner.asExpansionHook", () => {
 			constructor() {
 				super([]);
 			}
-			async *run(input: RunInput) {
+			override async *run(input: RunInput) {
 				called++;
 				yield* super.run(input);
 			}

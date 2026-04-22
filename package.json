@@ -12,6 +12,7 @@
 	"scripts": {
 		"check": "biome check",
 		"check:fix": "biome check --write",
+		"typecheck": "tsc --noEmit",
 		"build:preamble": "bun scripts/build-preamble.ts",
 		"test": "bun test --max-concurrency 1"
 	},
