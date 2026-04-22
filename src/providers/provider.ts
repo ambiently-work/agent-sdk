@@ -4,7 +4,7 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import type { Result, ToolRegistry } from "../tools/tools";
+import type { Result, ToolRegistry } from "@ambiently-work/faux";
 
 export interface ModelInfo {
 	id: string;
@@ -77,7 +77,7 @@ export type ProviderEvent =
 	| {
 			type: "tool_result";
 			id: string;
-			result: import("../tools/tools").ToolResult<unknown>;
+			result: import("@ambiently-work/faux").ToolResult<unknown>;
 	  }
 	| {
 			type: "done";

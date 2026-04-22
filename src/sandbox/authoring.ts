@@ -1,4 +1,4 @@
-import type { ToolResult } from "../tools/tools";
+import type { ToolResult } from "@ambiently-work/faux";
 import { Sandbox, type SandboxCreateOptions } from "./sandbox";
 import { transpileTs } from "./transpile";
 import type { ToolMeta } from "./types";

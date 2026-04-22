@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Message, ProviderEvent, RunInput } from "../providers/provider";
-import { Tool, ToolRegistry, type ToolResult } from "../tools/tools";
+import { Tool, ToolRegistry, type ToolResult } from "@ambiently-work/faux";
 import {
 	DEFAULT_PRICE_TABLE,
 	estimateCost,

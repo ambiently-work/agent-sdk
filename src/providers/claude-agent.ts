@@ -7,7 +7,7 @@ import {
 	type SdkMcpToolDefinition,
 } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
-import type { Tool as AmbientTool, ToolRegistry } from "../tools/tools";
+import type { Tool as AmbientTool, ToolRegistry } from "@ambiently-work/faux";
 import {
 	type Message,
 	type ModelInfo,

@@ -1,7 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Shell } from "@ambiently-work/faux";
-import { ShellSession } from "../../tools/shell-session";
-import { ShellTool } from "../../tools/shell-tool";
+import { Shell, ShellSession, ShellTool } from "@ambiently-work/faux";
 import { WorkerdBackend } from "../backend/workerd";
 import { shellCapability } from "./shell";
 

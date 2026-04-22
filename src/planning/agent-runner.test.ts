@@ -7,7 +7,7 @@ import {
 	type ProviderResult,
 	type RunInput,
 } from "../providers/provider";
-import { Tool, ToolRegistry, type ToolResult } from "../tools/tools";
+import { Tool, ToolRegistry, type ToolResult } from "@ambiently-work/faux";
 import { AgentNodeRunner } from "./agent-runner";
 import type { PlanEvent } from "./events";
 import type { ToolCache } from "./memoization";

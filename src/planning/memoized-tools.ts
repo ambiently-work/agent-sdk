@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { Tool, ToolRegistry, type ToolResult } from "../tools/tools";
+import { Tool, ToolRegistry, type ToolResult } from "@ambiently-work/faux";
 import type { PlanEvent } from "./events";
 import {
 	type CachedToolResult,

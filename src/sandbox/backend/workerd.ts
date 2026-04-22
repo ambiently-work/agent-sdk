@@ -1,4 +1,4 @@
-import type { ToolError, ToolResult } from "../../tools/tools";
+import type { ToolError, ToolResult } from "@ambiently-work/faux";
 import { buildRemoteGuestModule } from "../protocol/remote-guest";
 import {
 	dispatchHostInvoke,
