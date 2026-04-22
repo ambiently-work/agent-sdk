@@ -21,9 +21,13 @@ inputs:
     required: false
     default: feat/git-integration
   bun-version:
-    description: Bun version to install
+    description: >-
+      Bun version to install. Pinned to 1.3.12 because 1.3.13 surfaced a
+      regression in node:child_process.spawn that breaks miniflare/workerd
+      bootstrap in the sandbox tests (see PR #25 / issue #26). Revisit once a
+      later release fixes it.
     required: false
-    default: latest
+    default: "1.3.12"
 
 outputs:
   agent-sdk-path:
