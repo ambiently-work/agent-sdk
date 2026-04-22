@@ -15,7 +15,9 @@
 		"typecheck": "tsc --noEmit",
 		"typecheck:ci": "bun scripts/typecheck-ci.ts",
 		"build:preamble": "bun scripts/build-preamble.ts",
-		"test": "bun test --max-concurrency 1"
+		"test": "bun test --max-concurrency 1",
+		"test:unit": "bun test --max-concurrency 1 src/agent src/planning src/providers src/tools/tools.test.ts src/sandbox/backend/select.test.ts",
+		"test:sandbox": "bun test --max-concurrency 1 src/sandbox/authoring.test.ts src/sandbox/backend/workerd.test.ts src/sandbox/capabilities src/tools/dynamic-tool.test.ts src/tools/registry-dynamic.test.ts"
 	},
 	"dependencies": {
 		"@ambiently-work/faux": "file:../faux",

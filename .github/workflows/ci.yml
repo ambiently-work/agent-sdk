@@ -43,8 +43,8 @@ jobs:
       - name: Run tsc --noEmit (CI filter)
         run: bun run typecheck:ci
 
-  test:
-    name: Test (${{ matrix.os }})
+  test-unit:
+    name: Test (unit, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -55,25 +55,42 @@ jobs:
         with:
           path: ambiently-work/agent-sdk
       - uses: ./ambiently-work/agent-sdk/.github/actions/setup
-      - name: Run tests
+      - name: Run unit tests
         env:
           FORCE_COLOR: "1"
-        # The sandbox tests spin up real miniflare/workerd instances, which
-        # occasionally fail to start under CI resource pressure (broken pipe
-        # from workerd during bootstrap, ENOENT on the control socket). We
-        # retry up to 3 times so flakiness doesn't block merges; if every
-        # attempt fails, the job still fails.
+        run: bun run test:unit
+
+  test-sandbox:
+    name: Test (sandbox, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # Sandbox tests spin up miniflare/workerd subprocesses, which are flaky on
+    # GitHub-hosted runners (workerd "Broken pipe" during bootstrap, ENOENT on
+    # the control socket). They're not blocking yet — see issue #26 — but we
+    # still run them so regressions show up in the check list.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
+      - uses: ./ambiently-work/agent-sdk/.github/actions/setup
+      - name: Run sandbox tests (with retry)
+        env:
+          FORCE_COLOR: "1"
         run: |
           attempts=0
           max=3
-          until bun test; do
+          until bun run test:sandbox; do
             exit=$?
             attempts=$((attempts + 1))
             if [ "$attempts" -ge "$max" ]; then
-              echo "::error::bun test failed after $attempts attempts (exit $exit)"
+              echo "::error::bun run test:sandbox failed after $attempts attempts (exit $exit)"
               exit "$exit"
             fi
-            echo "::warning::bun test failed (attempt $attempts/$max, exit $exit); retrying..."
+            echo "::warning::bun run test:sandbox failed (attempt $attempts/$max, exit $exit); retrying..."
             sleep 2
           done
 
@@ -101,7 +118,7 @@ jobs:
   ci-status:
     name: CI status
     if: always()
-    needs: [lint, typecheck, test]
+    needs: [lint, typecheck, test-unit]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -111,7 +128,7 @@ jobs:
         env:
           LINT_RESULT: ${{ needs.lint.result }}
           TYPECHECK_RESULT: ${{ needs.typecheck.result }}
-          TEST_RESULT: ${{ needs.test.result }}
+          TEST_RESULT: ${{ needs.test-unit.result }}
         run: |
           if [ "$LINT_RESULT" != "success" ] \
             || [ "$TYPECHECK_RESULT" != "success" ] \

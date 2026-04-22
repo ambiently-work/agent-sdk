@@ -51,8 +51,8 @@ jobs:
         run: bun run check
       - name: Typecheck
         run: bun run typecheck:ci
-      - name: Test
-        run: bun test
+      - name: Unit tests
+        run: bun run test:unit
 
       - name: Publish to npmjs (OIDC)
         run: npm publish --provenance --access public
