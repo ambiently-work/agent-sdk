@@ -28,7 +28,7 @@ jobs:
       run:
         working-directory: ambiently-work/agent-sdk
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           path: ambiently-work/agent-sdk
 
@@ -94,7 +94,7 @@ jobs:
 
       - name: Create pull request
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           path: ambiently-work/agent-sdk
           branch: ${{ steps.target.outputs.branch }}
