@@ -1,6 +1,6 @@
 {
 	"name": "@ambiently-work/agent-sdk",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Run an LLM agent loop with tools authored as TypeScript and executed inside a workerd sandbox. Pluggable providers (Anthropic, OpenAI Codex, Google Gemini, LMStudio, Ollama) and capabilities (fs, fetch, shell, log).",
 	"license": "MIT",
 	"author": "ambiently",
@@ -55,9 +55,10 @@
 		"build:preamble": "bun scripts/build-preamble.ts",
 		"clean": "rm -rf dist tsconfig.tsbuildinfo",
 		"prepublishOnly": "bun run build",
-		"test": "bun test --max-concurrency 1",
+		"test": "bun run test:unit && bun run test:sandbox",
 		"test:unit": "bun test --max-concurrency 1 src/agent src/planning src/providers src/tools/tools.test.ts src/sandbox/backend/select.test.ts",
-		"test:sandbox": "bun test --max-concurrency 1 src/sandbox/authoring.test.ts src/sandbox/backend/workerd.test.ts src/sandbox/capabilities src/tools/dynamic-tool.test.ts src/tools/registry-dynamic.test.ts"
+		"test:sandbox": "bun scripts/test-sandbox.ts",
+		"test:sandbox:stress": "STRESS_SANDBOX=1 bun scripts/stress-sandbox.ts"
 	},
 	"dependencies": {
 		"@ambiently-work/faux": "github:ambiently-work/faux#0e473c5d4fe1d78274ea4811cff10541badf937f",

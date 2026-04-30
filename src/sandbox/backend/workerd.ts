@@ -12,6 +12,27 @@ import {
 	type SandboxOptions,
 } from "../types";
 
+// Miniflare derives its tmp path from `os.tmpdir()` at constructor time
+// (`path.join(os.tmpdir(), "miniflare-<32hex>")`) and workerd creates
+// AF_UNIX sockets *inside* that directory for plugin IPC. POSIX caps
+// `sun_path` at 108 bytes — once the parent path is long enough, workerd
+// can't bind and exits with "Broken pipe; fd = 3" / `connect ENOENT`.
+//
+// Real-world long-path sources we hit:
+//   - macOS: `os.tmpdir()` → `/var/folders/<hash>/T` (~49 chars)
+//   - GitHub-hosted runners: `/home/runner/work/<repo>/<repo>/...`
+//
+// Mitigation: scope `process.env.TMPDIR` to a short path *just* for the
+// synchronous `new Miniflare(...)` call, so `os.tmpdir()` resolves to it.
+// See issue #26 for the full reproduction.
+function resolveShortTmpdir(explicit?: string): string | null {
+	if (explicit) return explicit;
+	const fromEnv = process.env.MINIFLARE_TMPDIR;
+	if (fromEnv) return fromEnv;
+	if (process.platform === "win32") return null;
+	return "/tmp";
+}
+
 interface MiniflareResponseLike {
 	ok: boolean;
 	status: number;
@@ -61,6 +82,7 @@ class WorkerdInstance implements SandboxInstance {
 	private disposed = false;
 	private readonly capabilities: Capability[];
 	private readonly timeoutMs: number;
+	private readonly shortTmpdir: string | null;
 
 	constructor(
 		private readonly Miniflare: MiniflareCtor,
@@ -68,6 +90,7 @@ class WorkerdInstance implements SandboxInstance {
 	) {
 		this.capabilities = opts.capabilities ?? [];
 		this.timeoutMs = opts.timeoutMs ?? DEFAULTS.timeoutMs;
+		this.shortTmpdir = resolveShortTmpdir(opts.tmpDir);
 	}
 
 	async load(jsSource: string): Promise<ToolResult<void>> {
@@ -82,37 +105,75 @@ class WorkerdInstance implements SandboxInstance {
 		}
 		const built = buildRemoteGuestModule(jsSource);
 		const handlers = flattenCapabilities(this.capabilities);
-		try {
-			this.mf = new this.Miniflare({
-				modules: true,
-				compatibilityDate: "2026-01-01",
-				compatibilityFlags: ["nodejs_compat"],
-				script: built.modules[built.mainModule],
-				modulesRoot: "/",
-				serviceBindings: {
-					HOST: async (request: Request) =>
-						dispatchHostInvoke(request, handlers),
-				},
-			});
-			// dispatchFetch lazily starts the runtime; do a no-op probe so failures surface here
-			const probe = await this.fetchPath("/loadTool");
-			if (!probe.ok) {
-				const text = await probe.text();
-				return {
-					ok: false,
-					error: {
-						code: "sandbox_load_failed",
-						message: `guest worker failed to start: ${probe.status} ${text}`,
+		// `child_process.spawn()` inside Bun has been observed to fail with a
+		// transient `connect ENOENT` while wiring up stdio for back-to-back
+		// workerd spawns under heavy test pressure. The error originates in
+		// Bun's internal IPC plumbing, *before* workerd even runs, so a small
+		// retry is safe and keeps the suite deterministic. See issue #26.
+		let lastError: unknown;
+		for (let attempt = 0; attempt < 3; attempt++) {
+			try {
+				this.mf = this.constructMiniflare({
+					modules: true,
+					compatibilityDate: "2026-01-01",
+					compatibilityFlags: ["nodejs_compat"],
+					script: built.modules[built.mainModule],
+					modulesRoot: "/",
+					serviceBindings: {
+						HOST: async (request: Request) =>
+							dispatchHostInvoke(request, handlers),
 					},
-				};
+				});
+				// dispatchFetch lazily starts the runtime; do a no-op probe so failures surface here
+				const probe = await this.fetchPath("/loadTool");
+				if (!probe.ok) {
+					const text = await probe.text();
+					await this.disposeMiniflare();
+					return {
+						ok: false,
+						error: {
+							code: "sandbox_load_failed",
+							message: `guest worker failed to start: ${probe.status} ${text}`,
+						},
+					};
+				}
+				return { ok: true, value: undefined };
+			} catch (e) {
+				lastError = e;
+				await this.disposeMiniflare();
+				if (!isTransientSpawnError(e) || attempt === 2) break;
+				await sleep(100 * 2 ** attempt);
 			}
-			return { ok: true, value: undefined };
-		} catch (e) {
-			return {
-				ok: false,
-				error: this.classifyThrown(e, "sandbox_load_failed"),
-			};
 		}
+		return {
+			ok: false,
+			error: this.classifyThrown(lastError, "sandbox_load_failed"),
+		};
+	}
+
+	private constructMiniflare(opts: unknown): MiniflareLike {
+		// `os.tmpdir()` is read synchronously inside the Miniflare constructor,
+		// so a brief env scope is enough — no race even with concurrent creates.
+		const prev = process.env.TMPDIR;
+		if (this.shortTmpdir !== null) {
+			process.env.TMPDIR = this.shortTmpdir;
+		}
+		try {
+			return new this.Miniflare(opts);
+		} finally {
+			if (this.shortTmpdir !== null) {
+				if (prev === undefined) delete process.env.TMPDIR;
+				else process.env.TMPDIR = prev;
+			}
+		}
+	}
+
+	private async disposeMiniflare(): Promise<void> {
+		if (!this.mf) return;
+		try {
+			await this.mf.dispose();
+		} catch {}
+		this.mf = null;
 	}
 
 	async callJson(fn: string, arg?: unknown): Promise<ToolResult<unknown>> {
@@ -179,12 +240,7 @@ class WorkerdInstance implements SandboxInstance {
 	async dispose(): Promise<void> {
 		if (this.disposed) return;
 		this.disposed = true;
-		if (this.mf) {
-			try {
-				await this.mf.dispose();
-			} catch {}
-			this.mf = null;
-		}
+		await this.disposeMiniflare();
 		for (const cap of this.capabilities) {
 			try {
 				await cap.dispose?.();
@@ -240,4 +296,23 @@ function makeTimeoutError(timeoutMs: number): Error {
 	const e = new Error(`sandbox call exceeded timeout of ${timeoutMs}ms`);
 	e.name = "SandboxTimeout";
 	return e;
+}
+
+function isTransientSpawnError(e: unknown): boolean {
+	if (!e) return false;
+	const message = e instanceof Error ? e.message : String(e);
+	const code = (e as { code?: unknown }).code;
+	const syscall = (e as { syscall?: unknown }).syscall;
+	// Bun's child_process.spawn wires stdio via internal sockets; under heavy
+	// load the connect() to that socket can transiently fail with ENOENT.
+	if (code === "ENOENT" && syscall === "connect") return true;
+	if (/Failed to connect/.test(message) && /ENOENT/.test(message)) return true;
+	// Defensive: workerd's "Broken pipe; fd = 3" is the symptom of the same
+	// race when the spawn *did* succeed but the stdio side died early.
+	if (/Broken pipe.*fd = 3/.test(message)) return true;
+	return false;
+}
+
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }

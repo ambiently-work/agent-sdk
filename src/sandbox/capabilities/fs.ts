@@ -42,7 +42,7 @@ export class FsDeniedError extends Error {
 
 /**
  * Stats shape returned to guests. A plain object, not the function-bearing
- * `VfsStats` — those methods can't cross the host/guest JSON boundary.
+ * `MirageStats` — those methods can't cross the host/guest JSON boundary.
  */
 export interface GuestStats {
 	size: number;

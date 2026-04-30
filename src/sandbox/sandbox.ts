@@ -30,6 +30,7 @@ export class Sandbox {
 			memoryBytes: opts.memoryBytes,
 			maxStackBytes: opts.maxStackBytes,
 			capabilities: opts.capabilities,
+			tmpDir: opts.tmpDir,
 		});
 		return new Sandbox(instance);
 	}
