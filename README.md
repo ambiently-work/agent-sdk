@@ -7,6 +7,7 @@
 [![npm version](https://img.shields.io/npm/v/@ambiently-work/agent-sdk?color=%230070f3&label=npm&logo=npm)](https://www.npmjs.com/package/@ambiently-work/agent-sdk)
 [![npm downloads](https://img.shields.io/npm/dm/@ambiently-work/agent-sdk?color=%23000)](https://www.npmjs.com/package/@ambiently-work/agent-sdk)
 [![CI](https://github.com/ambiently-work/agent-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/ambiently-work/agent-sdk/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-%23a31f34)](LICENSE)
 [![Made for Bun](https://img.shields.io/badge/runtime-Bun-%23f9f1e1?logo=bun&logoColor=%23000)](https://bun.sh)
 [![Sandbox](https://img.shields.io/badge/sandbox-workerd-%23f38020?logo=cloudflare&logoColor=white)](https://github.com/cloudflare/workerd)
 
@@ -180,3 +181,7 @@ Implement your own by conforming to `Capability = { name, functions, dispose? }`
 
 - [`docs/architecture.md`](docs/architecture.md) — deeper dive into the host↔guest protocol and sandbox internals.
 - [`docs/providers.md`](docs/providers.md) — provider-specific behavior and event semantics.
+
+## License
+
+MIT © [ambiently-work](https://github.com/ambiently-work) — see [LICENSE](LICENSE).
