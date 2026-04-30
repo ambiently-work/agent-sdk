@@ -2,9 +2,10 @@
 /**
  * CI-oriented wrapper around `tsc --noEmit`.
  *
- * Because `@ambiently-work/faux` and `@ambiently-work/vfs` are currently wired
- * up as local `file:` dependencies that expose their raw `.ts` sources (rather
- * than a built `dist/`), TypeScript follows those imports and type-checks the
+ * Because `@ambiently-work/faux` and `@ambiently-work/mirage` are currently
+ * wired up as `github:` dependencies that ship their raw `.ts` sources (rather
+ * than a built `dist/` — npm's `publishConfig.files` is bypassed for git
+ * tarball installs), TypeScript follows those imports and type-checks the
  * sibling packages' source trees. Any strictness errors over there then bubble
  * up into our run and fail the check, even though they're not in our code.
  *

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { VirtualFileSystem } from "@ambiently-work/vfs";
+import { VirtualFileSystem } from "@ambiently-work/mirage";
 import { WorkerdBackend } from "../backend/workerd";
 import { fsCapability } from "./fs";
 
