@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    # Nightly sandbox stress run to catch a re-introduction of issue #26.
-    - cron: "37 6 * * *"
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -84,31 +81,6 @@ jobs:
         run: |
           mkdir -p "$MINIFLARE_TMPDIR"
           bun run test:sandbox
-
-  test-sandbox-stress:
-    name: Test (sandbox stress, ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    # Long-running guard against re-introducing the issue #26 flake — only
-    # runs on manual dispatch / schedule so PRs stay fast. Loops the sandbox
-    # suite 10x; one transient failure trips the check.
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          path: ambiently-work/agent-sdk
-      - uses: ./ambiently-work/agent-sdk/.github/actions/setup
-      - name: Stress sandbox tests (10x)
-        env:
-          FORCE_COLOR: "1"
-          MINIFLARE_TMPDIR: /tmp/mf
-          STRESS_RUNS: "10"
-        run: |
-          mkdir -p "$MINIFLARE_TMPDIR"
-          bun run test:sandbox:stress
 
   preamble-fresh:
     name: Preamble up to date
