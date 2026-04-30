@@ -33,16 +33,39 @@ function expand(path: string): string[] {
 }
 
 const files = ROOTS.flatMap(expand).sort();
-let failures = 0;
-for (const file of files) {
-	process.stdout.write(`\n→ ${file}\n`);
+const MAX_ATTEMPTS = Number.parseInt(
+	process.env.SANDBOX_TEST_ATTEMPTS ?? "2",
+	10,
+);
+
+function runOnce(file: string): number | null {
 	const result = spawnSync("bun", ["test", file], {
 		stdio: "inherit",
 		env: process.env,
 	});
-	if (result.status !== 0) {
+	return result.status;
+}
+
+let failures = 0;
+for (const file of files) {
+	process.stdout.write(`\n→ ${file}\n`);
+	let status: number | null = null;
+	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		status = runOnce(file);
+		if (status === 0) break;
+		if (attempt < MAX_ATTEMPTS) {
+			// Bun 1.3.12 still surfaces a rare workerd "Broken pipe; fd = 3" at
+			// spawn time on Linux runners (issue #26). One retry per file is
+			// enough to ride out the transient kernel/IPC race; persistent
+			// failures still surface. Tune via SANDBOX_TEST_ATTEMPTS.
+			process.stdout.write(
+				`  ⟲ ${file} failed (exit ${status}); retrying ${attempt + 1}/${MAX_ATTEMPTS}\n`,
+			);
+		}
+	}
+	if (status !== 0) {
 		failures += 1;
-		process.stdout.write(`  ✗ ${file} (exit ${result.status})\n`);
+		process.stdout.write(`  ✗ ${file} (exit ${status})\n`);
 	}
 }
 
