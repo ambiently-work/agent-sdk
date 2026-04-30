@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/ambiently-work/agent-sdk/compare/agent-sdk-v0.1.0...agent-sdk-v0.1.1) (2026-04-30)
+
+
+### Bug Fixes
+
+* **sandbox:** stabilize miniflare/workerd bootstrap, drop CI retry ([#30](https://github.com/ambiently-work/agent-sdk/issues/30)) ([30775c2](https://github.com/ambiently-work/agent-sdk/commit/30775c2e8093dd48704e964e6186e24c9e498cd8))
+
 ## [0.1.0](https://github.com/ambiently-work/agent-sdk/compare/agent-sdk-v0.0.1...agent-sdk-v0.1.0) (2026-04-21)
 
 
