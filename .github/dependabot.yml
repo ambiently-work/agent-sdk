@@ -33,6 +33,7 @@ updates:
           - "typescript"
           - "@types/*"
         update-types:
+          - major
           - minor
           - patch
       # LLM provider SDKs — bumped together so the agent loop stays consistent.
@@ -46,6 +47,7 @@ updates:
           - "@modelcontextprotocol/*"
           - "ollama"
         update-types:
+          - major
           - minor
           - patch
       cloudflare:
@@ -55,6 +57,7 @@ updates:
           - "miniflare"
           - "@cloudflare/*"
         update-types:
+          - major
           - minor
           - patch
       minor-and-patch:
