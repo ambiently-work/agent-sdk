@@ -1,8 +1,38 @@
-# @ambiently-work/agent-sdk
+<div align="center">
 
-A TypeScript SDK for running LLM agent loops with typed tools, multiple provider backends, a workerd-based sandbox for untrusted tool code, and an opt-in planning layer for long-horizon work.
+# `@ambiently-work/agent-sdk`
 
-Target runtime is [Bun](https://bun.sh). The sandbox guest runs under [workerd](https://github.com/cloudflare/workerd) — via [`miniflare`](https://miniflare.dev) locally, or Cloudflare's Worker Loader binding when deployed inside a Worker.
+**A TypeScript SDK for building LLM agents with typed tools, streaming providers, and a sandboxed runtime for untrusted tool code.**
+
+[![npm version](https://img.shields.io/npm/v/@ambiently-work/agent-sdk?color=%230070f3&label=npm&logo=npm)](https://www.npmjs.com/package/@ambiently-work/agent-sdk)
+[![npm downloads](https://img.shields.io/npm/dm/@ambiently-work/agent-sdk?color=%23000)](https://www.npmjs.com/package/@ambiently-work/agent-sdk)
+[![CI](https://github.com/ambiently-work/agent-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/ambiently-work/agent-sdk/actions/workflows/ci.yml)
+[![Made for Bun](https://img.shields.io/badge/runtime-Bun-%23f9f1e1?logo=bun&logoColor=%23000)](https://bun.sh)
+[![Sandbox](https://img.shields.io/badge/sandbox-workerd-%23f38020?logo=cloudflare&logoColor=white)](https://github.com/cloudflare/workerd)
+
+</div>
+
+---
+
+## What is it?
+
+`agent-sdk` is the missing middle layer between "I have an LLM SDK" and "I have a working agent". It gives you:
+
+- **Typed tools** with `zod` schemas, `Result` returns, and a single registry shared across providers and MCP.
+- **A streaming agent loop** that drives any of the built-in providers (Ollama, Claude, Gemini, LM Studio, Codex) through tool-use turns until the model is done.
+- **A real sandbox** for running model-authored or third-party tool code — workerd isolates, no ambient network, capability-gated host calls.
+- **An optional planning layer** for long-horizon work: typed plan DAGs, phased planners, and a step-by-step executor with approvals and budgets.
+
+It's built for [Bun](https://bun.sh), and the sandbox guest runs under [workerd](https://github.com/cloudflare/workerd) — locally via [`miniflare`](https://miniflare.dev), or in production via Cloudflare's Worker Loader binding.
+
+## Highlights
+
+- 🧰 **One tool model, everywhere.** A single `ToolRegistry` powers chat-completion tool calls, MCP servers, and sandboxed dynamic tools.
+- 🔌 **Five providers out of the box.** Swap models without rewriting your tool layer.
+- 🧪 **Sandboxed execution.** Run untrusted TypeScript as tools — `defineTool({...})`, no network, capability-gated host calls.
+- 🔐 **Capabilities, not permissions.** `fetch`, `log`, `shell`, and `fs` are explicit allow-listed APIs the host hands the guest.
+- 🧠 **Optional planner.** Typed plan DAGs, phased planning, single-step execution with checkpoints and approvals.
+- 🪶 **Result types over exceptions.** Errors are values; tool failures don't crash your loop.
 
 ## Install
 
@@ -45,6 +75,8 @@ for await (const event of agent.run({
 }
 ```
 
+That's it — the agent drives the tool-use loop, your `AddTool` runs on the host, and the model gets the result fed back automatically.
+
 ## Architecture
 
 Four layers compose the SDK. Each is useful on its own.
@@ -70,13 +102,13 @@ Events: `assistant_text_delta`, `assistant_text`, `tool_call`, `tool_result`, `d
 
 Built-in providers:
 
-| Provider               | Backend                          |
-| ---------------------- | -------------------------------- |
-| `OllamaProvider`       | `ollama` SDK                     |
-| `ClaudeAgentProvider`  | `@anthropic-ai/claude-agent-sdk` |
-| `GeminiProvider`       | `@google/genai`                  |
-| `LMStudioProvider`     | `@lmstudio/sdk`                  |
-| `CodexProvider`        | `@openai/codex-sdk`              |
+| Provider              | Backend                          |
+| --------------------- | -------------------------------- |
+| `OllamaProvider`      | `ollama` SDK                     |
+| `ClaudeAgentProvider` | `@anthropic-ai/claude-agent-sdk` |
+| `GeminiProvider`      | `@google/genai`                  |
+| `LMStudioProvider`    | `@lmstudio/sdk`                  |
+| `CodexProvider`       | `@openai/codex-sdk`              |
 
 `Agent` is a thin façade that pairs a `Provider` with a `ToolRegistry`. Two adapters work on the same registry:
 
@@ -143,3 +175,8 @@ Implement your own by conforming to `Capability = { name, functions, dispose? }`
 - Biome formatting (tabs, double quotes, organize-imports).
 - Tests live next to the code they cover (`foo.ts` + `foo.test.ts`) and use `bun:test`.
 - `src/index.ts` is the public surface.
+
+## Further reading
+
+- [`docs/architecture.md`](docs/architecture.md) — deeper dive into the host↔guest protocol and sandbox internals.
+- [`docs/providers.md`](docs/providers.md) — provider-specific behavior and event semantics.
