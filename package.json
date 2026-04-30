@@ -1,28 +1,68 @@
 {
 	"name": "@ambiently-work/agent-sdk",
 	"version": "0.1.1",
-	"module": "src/index.ts",
+	"description": "Run an LLM agent loop with tools authored as TypeScript and executed inside a workerd sandbox. Pluggable providers (Anthropic, OpenAI Codex, Google Gemini, LMStudio, Ollama) and capabilities (fs, fetch, shell, log).",
+	"license": "MIT",
+	"author": "ambiently",
+	"homepage": "https://github.com/ambiently-work/agent-sdk",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ambiently-work/agent-sdk.git"
+	},
+	"bugs": "https://github.com/ambiently-work/agent-sdk/issues",
+	"keywords": [
+		"agent",
+		"llm",
+		"tools",
+		"sandbox",
+		"workerd",
+		"miniflare",
+		"anthropic",
+		"openai",
+		"gemini",
+		"ollama",
+		"mcp"
+	],
 	"type": "module",
-	"devDependencies": {
-		"@types/bun": "latest"
+	"main": "./src/index.ts",
+	"module": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": "./src/index.ts"
 	},
-	"peerDependencies": {
-		"typescript": "^5"
+	"publishConfig": {
+		"access": "public",
+		"main": "./dist/index.js",
+		"module": "./dist/index.js",
+		"types": "./dist/index.d.ts",
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"import": "./dist/index.js",
+				"default": "./dist/index.js"
+			}
+		}
 	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"check": "biome check",
 		"check:fix": "biome check --write",
 		"typecheck": "tsc --noEmit",
 		"typecheck:ci": "bun scripts/typecheck-ci.ts",
+		"build": "bun scripts/build.ts",
 		"build:preamble": "bun scripts/build-preamble.ts",
+		"clean": "rm -rf dist tsconfig.tsbuildinfo",
+		"prepublishOnly": "bun run build",
 		"test": "bun run test:unit && bun run test:sandbox",
 		"test:unit": "bun test --max-concurrency 1 src/agent src/planning src/providers src/tools/tools.test.ts src/sandbox/backend/select.test.ts",
 		"test:sandbox": "bun scripts/test-sandbox.ts",
 		"test:sandbox:stress": "STRESS_SANDBOX=1 bun scripts/stress-sandbox.ts"
 	},
 	"dependencies": {
-		"@ambiently-work/faux": "file:../faux",
-		"@ambiently-work/vfs": "file:../../ambiently-work/mirage",
+		"@ambiently-work/faux": "github:ambiently-work/faux#0e473c5d4fe1d78274ea4811cff10541badf937f",
+		"@ambiently-work/mirage": "github:ambiently-work/mirage#82eed44375ba20c281ee93c6584c4549f3161796",
 		"@anthropic-ai/claude-agent-sdk": "^0.2.114",
 		"@google/genai": "^1.50.1",
 		"@lmstudio/sdk": "^1.5.0",
@@ -31,5 +71,12 @@
 		"miniflare": "^4.20260415.0",
 		"ollama": "^0.6.3",
 		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.12",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
 	}
 }

@@ -105,7 +105,7 @@ Host-provided functions that guest code can call. Ships four:
 - `fetchCapability({ allow, timeoutMs, maxResponseBytes, fetchImpl })` — allow-list gated outgoing fetches with a response-size cap. Denials surface as `sandbox_capability_denied`.
 - `logCapability({ sinks })` — structured logging from the guest.
 - `shellCapability` — gated access to a [faux](https://www.npmjs.com/package/@ambiently-work/faux) in-process shell.
-- `fsCapability({ fs, allow })` — per-op gated access to an [`@ambiently-work/vfs`](https://www.npmjs.com/package/@ambiently-work/vfs) filesystem (read/write/stat/glob/etc.).
+- `fsCapability({ fs, allow })` — per-op gated access to a [`@ambiently-work/mirage`](https://www.npmjs.com/package/@ambiently-work/mirage) filesystem (read/write/stat/glob/etc.).
 
 Implement your own by conforming to `Capability = { name, functions, dispose? }` and passing it via `SandboxOptions.capabilities`.
 

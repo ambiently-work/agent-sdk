@@ -1,10 +1,10 @@
-import type { IFileSystem, MirageStats } from "@ambiently-work/vfs";
+import type { IFileSystem, MirageStats } from "@ambiently-work/mirage";
 import type { Capability } from "../types";
 
 export interface FsCapabilityOptions {
 	/**
 	 * The filesystem to expose. Typically a `VirtualFileSystem` from
-	 * `@ambiently-work/vfs`, but any `IFileSystem` works (including a
+	 * `@ambiently-work/mirage`, but any `IFileSystem` works (including a
 	 * `ReadOnlyFileSystem` or `LayeredFileSystem`).
 	 */
 	fs: IFileSystem;

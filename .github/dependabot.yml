@@ -1,54 +1,92 @@
+# Grouped Dependabot updates.
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 version: 2
+
 updates:
   - package-ecosystem: npm
-    directory: /
+    directory: "/"
     schedule:
       interval: weekly
       day: monday
       time: "06:00"
-      timezone: Etc/UTC
+      timezone: Europe/Amsterdam
     open-pull-requests-limit: 10
-    versioning-strategy: increase
     labels:
       - dependencies
-      - automated
     commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
+      prefix: chore
       include: scope
+    # Mirror the org's Renovate `minimumReleaseAge: 7 days`. Security
+    # updates bypass cooldown automatically.
+    cooldown:
+      default-days: 7
+      include:
+        - "*"
+    # Workspace deps live in sibling repos via `file:`; never bump them here.
     ignore:
       - dependency-name: "@ambiently-work/*"
     groups:
-      anthropic-stack:
+      tooling:
+        applies-to: version-updates
+        patterns:
+          - "@biomejs/*"
+          - "typescript"
+          - "@types/*"
+        update-types:
+          - major
+          - minor
+          - patch
+      # LLM provider SDKs — bumped together so the agent loop stays consistent.
+      ai-sdks:
+        applies-to: version-updates
         patterns:
           - "@anthropic-ai/*"
-          - "@modelcontextprotocol/*"
-      providers:
-        patterns:
           - "@google/genai"
           - "@openai/*"
-          - "@lmstudio/*"
+          - "@lmstudio/sdk"
+          - "@modelcontextprotocol/*"
           - "ollama"
-      types:
+        update-types:
+          - major
+          - minor
+          - patch
+      cloudflare:
+        applies-to: version-updates
         patterns:
-          - "@types/*"
+          - "wrangler"
+          - "miniflare"
+          - "@cloudflare/*"
+        update-types:
+          - major
+          - minor
+          - patch
+      minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
-    directory: /
+    directory: "/"
     schedule:
       interval: weekly
       day: monday
       time: "06:00"
-      timezone: Etc/UTC
-    open-pull-requests-limit: 5
+      timezone: Europe/Amsterdam
     labels:
       - dependencies
       - github-actions
-      - automated
     commit-message:
-      prefix: "ci(deps)"
+      prefix: ci
       include: scope
+    cooldown:
+      default-days: 7
+      include:
+        - "*"
     groups:
       actions:
+        applies-to: version-updates
         patterns:
           - "*"
