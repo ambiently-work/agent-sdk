@@ -19,7 +19,7 @@ inputs:
   mirage-ref:
     description: Git ref to check out in the mirage repo (provides @ambiently-work/vfs)
     required: false
-    default: feat/git-integration
+    default: main
   bun-version:
     description: >-
       Bun version to install. Pinned to 1.3.12 because 1.3.13 surfaced a
