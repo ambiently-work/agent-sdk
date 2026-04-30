@@ -19,6 +19,14 @@ export interface SandboxOptions {
 	memoryBytes?: number;
 	maxStackBytes?: number;
 	capabilities?: Capability[];
+	/**
+	 * Workerd backend only. Directory under which miniflare/workerd should
+	 * place their temp files and AF_UNIX sockets. POSIX `sun_path` is capped
+	 * at 108 bytes; if the resolved path is too long, workerd dies on
+	 * bootstrap with "Broken pipe; fd = 3" / `connect ENOENT`. Defaults to
+	 * `$MINIFLARE_TMPDIR` if set, otherwise `/tmp` on POSIX (short and safe).
+	 */
+	tmpDir?: string;
 }
 
 export interface SandboxInstance {

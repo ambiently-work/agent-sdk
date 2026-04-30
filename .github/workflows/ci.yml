@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Nightly sandbox stress run to catch a re-introduction of issue #26.
+    - cron: "37 6 * * *"
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -63,11 +66,6 @@ jobs:
   test-sandbox:
     name: Test (sandbox, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    # Sandbox tests spin up miniflare/workerd subprocesses, which are flaky on
-    # GitHub-hosted runners (workerd "Broken pipe" during bootstrap, ENOENT on
-    # the control socket). They're not blocking yet — see issue #26 — but we
-    # still run them so regressions show up in the check list.
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -77,37 +75,40 @@ jobs:
         with:
           path: ambiently-work/agent-sdk
       - uses: ./ambiently-work/agent-sdk/.github/actions/setup
-      - name: Run sandbox tests (one file per bun process, with retry)
+      - name: Run sandbox tests
         env:
           FORCE_COLOR: "1"
-        # The miniflare/workerd lifecycle occasionally leaves a zombie subprocess
-        # or a half-cleaned control socket behind after `sandbox.dispose()`. When
-        # the next test boots miniflare it hits `connect ENOENT`. Running each
-        # test file in its own bun process guarantees a clean slate between files.
-        # Tests inside a file still share a process but that's fine — flakes have
-        # only been observed across-file.
+          # Force a short tmpdir so workerd's AF_UNIX socket paths stay under
+          # the 108-byte sun_path limit. See WorkerdBackend / issue #26.
+          MINIFLARE_TMPDIR: /tmp/mf
         run: |
-          set -eu
-          files=$(find src/sandbox/authoring.test.ts src/sandbox/backend/workerd.test.ts src/sandbox/capabilities src/tools/dynamic-tool.test.ts src/tools/registry-dynamic.test.ts -name '*.test.ts' | sort)
-          fail=0
-          for file in $files; do
-            echo "::group::$file"
-            attempts=0
-            max=3
-            until bun test "$file"; do
-              exit=$?
-              attempts=$((attempts + 1))
-              if [ "$attempts" -ge "$max" ]; then
-                echo "::error::$file failed after $attempts attempts (exit $exit)"
-                fail=1
-                break
-              fi
-              echo "::warning::$file failed (attempt $attempts/$max, exit $exit); retrying..."
-              sleep 2
-            done
-            echo "::endgroup::"
-          done
-          exit "$fail"
+          mkdir -p "$MINIFLARE_TMPDIR"
+          bun run test:sandbox
+
+  test-sandbox-stress:
+    name: Test (sandbox stress, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # Long-running guard against re-introducing the issue #26 flake — only
+    # runs on manual dispatch / schedule so PRs stay fast. Loops the sandbox
+    # suite 10x; one transient failure trips the check.
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: ambiently-work/agent-sdk
+      - uses: ./ambiently-work/agent-sdk/.github/actions/setup
+      - name: Stress sandbox tests (10x)
+        env:
+          FORCE_COLOR: "1"
+          MINIFLARE_TMPDIR: /tmp/mf
+          STRESS_RUNS: "10"
+        run: |
+          mkdir -p "$MINIFLARE_TMPDIR"
+          bun run test:sandbox:stress
 
   preamble-fresh:
     name: Preamble up to date
@@ -133,7 +134,7 @@ jobs:
   ci-status:
     name: CI status
     if: always()
-    needs: [lint, typecheck, test-unit]
+    needs: [lint, typecheck, test-unit, test-sandbox]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -143,11 +144,13 @@ jobs:
         env:
           LINT_RESULT: ${{ needs.lint.result }}
           TYPECHECK_RESULT: ${{ needs.typecheck.result }}
-          TEST_RESULT: ${{ needs.test-unit.result }}
+          TEST_UNIT_RESULT: ${{ needs.test-unit.result }}
+          TEST_SANDBOX_RESULT: ${{ needs.test-sandbox.result }}
         run: |
           if [ "$LINT_RESULT" != "success" ] \
             || [ "$TYPECHECK_RESULT" != "success" ] \
-            || [ "$TEST_RESULT" != "success" ]; then
+            || [ "$TEST_UNIT_RESULT" != "success" ] \
+            || [ "$TEST_SANDBOX_RESULT" != "success" ]; then
             echo "One or more required jobs failed." >&2
             exit 1
           fi

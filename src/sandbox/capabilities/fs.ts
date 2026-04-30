@@ -1,4 +1,4 @@
-import type { IFileSystem, VfsStats } from "@ambiently-work/vfs";
+import type { IFileSystem, MirageStats } from "@ambiently-work/vfs";
 import type { Capability } from "../types";
 
 export interface FsCapabilityOptions {
@@ -42,7 +42,7 @@ export class FsDeniedError extends Error {
 
 /**
  * Stats shape returned to guests. A plain object, not the function-bearing
- * `VfsStats` — those methods can't cross the host/guest JSON boundary.
+ * `MirageStats` — those methods can't cross the host/guest JSON boundary.
  */
 export interface GuestStats {
 	size: number;
@@ -55,7 +55,7 @@ export interface GuestStats {
 	kind: "file" | "directory" | "symlink";
 }
 
-function toGuestStats(stat: VfsStats): GuestStats {
+function toGuestStats(stat: MirageStats): GuestStats {
 	const kind = stat.isFile()
 		? "file"
 		: stat.isDirectory()
