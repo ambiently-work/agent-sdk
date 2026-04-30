@@ -15,7 +15,7 @@ inputs:
   faux-ref:
     description: Git ref to check out in the faux repo
     required: false
-    default: feat/integrate-agent-tools
+    default: main
   mirage-ref:
     description: Git ref to check out in the mirage repo (provides @ambiently-work/vfs)
     required: false
